@@ -4,6 +4,7 @@ width, length = 800, 600
 fps = 60
 clock = time.Clock()
 x,y = width // 2, length // 2
+tile = 30
 screen = display.set_mode((width,length))
 
 # CLASSES ---------------------------------------------------
@@ -16,13 +17,15 @@ class Blocks:
         self.blockHB = Rect(self.x, self.y, self.width, self.height)
 
 class Entity:
-    def __init__(self,x,y, hp, vel, jh):
+    def __init__(self,x,y, hp, vel, jh, t_x, t_y):
         self.x = x
         self.y = y
+        self.tile_x = t_x
+        self.tile_y = t_y
         self.health = hp 
         self.velocity = vel
         self.jump_height = jh
-        self.hitbox = Rect(self.x,self.y,30,10)
+        self.hitbox = Rect(self.x,self.y,self.tile_x,self.tile_y)
         self.vel_y = 0
         self.on_ground = False
 
@@ -31,13 +34,15 @@ class Entity:
             self.vel_y += g_force
             self.hitbox.y += self.vel_y 
             self.on_ground = False
-            if self.hitbox.colliderect(block1):
+            if self.hitbox.colliderect(block1.blockHB):
                 if self.vel_y>0:
-                    self.hitbox.bottom = block1.top
+                    self.hitbox.bottom = block1.blockHB.top
+                    self.on_ground = True
+                    self.vel_y = 0
 
 class Player(Entity):
-    def __init__(self,x,y, hp,vel,jh,sat,mp):
-        super().__init__(x,y,hp,vel,jh)
+    def __init__(self,x,y, hp,vel,jh, t_x, t_y,sat,mp):
+        super().__init__(x,y,hp,vel,jh, t_x, t_y)
         self.mana_points = mp
         self.saturation = sat
 
@@ -49,15 +54,11 @@ class Player(Entity):
             self.hitbox.x -= self.velocity
         if keys[K_d] and self.hitbox.x < width:
             self.hitbox.x += self.velocity
-        if keys[K_w] and self.hitbox.y > 0:
-            self.hitbox.y -= self.velocity
-        if keys[K_s] and self.hitbox.y < length:
-            self.hitbox.y += self.velocity
-    def gravity(self):
-        g_force = 4
-        self.hitbox.y += g_force 
-        if self.hitbox.colliderect(block1.blockHB):
-            self.hitbox.y += g_force 
+        if keys[K_w] and self.on_ground:
+            self.vel_y = -self.jump_height
+            self.on_ground = False
+        
+
 class Enemy(Entity):
     pass
 
@@ -65,6 +66,6 @@ class Enemy(Entity):
 
 # OBJECTS ---------------------------------------------------
 
-player1 = Player(x,y,100,20,40,100,20)
+player1 = Player(x,y,100, 3, 15,20,40,100,100)
 
-block1 = Blocks(x,y+20, 100, 20)
+block1 = Blocks(x,y+40, 100, 20)
