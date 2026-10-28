@@ -1,5 +1,5 @@
 from pygame import *
-from variables import *
+from classes import *
 init()
 
 
@@ -12,6 +12,7 @@ def mainloop():
                 run = False
         draw.rect(screen, "green", player1.hitbox)
         player1.movement()
+        player1.gravity()
         display.flip()
         clock.tick(fps)
     quit()
